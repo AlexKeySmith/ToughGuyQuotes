@@ -20,7 +20,7 @@ void handle_init(AppContextRef ctx) {
 	window_init(&window, "Tough Guy");
 	window_stack_push(&window, true /* Animated */);
 	
-	text_layer_init(&toughText_layer, GRect(0, 65, 144, 30));
+	text_layer_init(&toughText_layer, GRect(0, 0, 144, 168));
 	text_layer_set_text_alignment(&toughText_layer, GTextAlignmentCenter);
 	text_layer_set_text(&toughText_layer, "Alex Key's brain waves are suspected to be harmful to cell phones.");
 	text_layer_set_font(&toughText_layer, fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21));
