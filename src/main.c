@@ -32,18 +32,15 @@ TextLayer toughText_layer;
 
 
 
-static void handle_minute_tick(AppContextRef app_ctx, PebbleTickEvent* e) {
- 	
-}
-
 
 void http_success(int32_t request_id, int http_status, DictionaryIterator* received, void* context) {
-  if (request_id != HTTP_COOKIE) {
+  text_layer_set_text(&toughText_layer, "in http success");
+	
+	if (request_id != HTTP_COOKIE) {
     return;
   }
  
-  //Tuple* tuple1 = dict_find(received, 0);
-  //text_layer_set_text(&toughText_layer, tuple1->value->cstring);
+
  
   Tuple* tuple = dict_read_next(received);
 
@@ -54,21 +51,18 @@ void http_success(int32_t request_id, int http_status, DictionaryIterator* recei
 }
  
 void http_failure(int32_t request_id, int http_status, void* context) {
+	text_layer_set_text(&toughText_layer, "http failure");
   httpebble_error(http_status >= 1000 ? http_status - 1000 : http_status);
 }
 
 
-void window_appear(Window* me) {
- 
-
-}
 
 
 
 void handle_init(AppContextRef ctx) {
 	(void)ctx;
 
-	http_set_app_id(76782702);
+	http_set_app_id(762702);
 	
 	http_register_callbacks((HTTPCallbacks) {
 		.success = http_success,
@@ -81,32 +75,39 @@ void handle_init(AppContextRef ctx) {
 	window_init(&window, "Tough Guy");
 	window_stack_push(&window, true /* Animated */);
 	
-	window_set_window_handlers(&window, (WindowHandlers){
-		.appear  = window_appear
-	});
 	
 	text_layer_init(&toughText_layer, GRect(0, 0, 144, 168));
 	text_layer_set_text_alignment(&toughText_layer, GTextAlignmentCenter);
 
 	text_layer_set_font(&toughText_layer, fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21));
 	layer_add_child(&window.layer, &toughText_layer.layer);
+	
+	text_layer_set_text(&toughText_layer, "about to load quotes...");
+	
+	request_quotes();
 }
 
 
 
 void request_quotes() {
-
+	
+	text_layer_set_text(&toughText_layer, "setup dictionary");
 	DictionaryIterator *body;
+	text_layer_set_text(&toughText_layer, "about to prepare out get");
 	HTTPResult result = http_out_get("http://toughguyquotes.azurewebsites.net/", HTTP_COOKIE, &body);
 	if(result != HTTP_OK) {
-
+		text_layer_set_text(&toughText_layer, "prepare get failed");
 		return;
 	}
 
+	text_layer_set_text(&toughText_layer, "about to http send");
 	// Send it.
 	if(http_out_send() != HTTP_OK) {
+		text_layer_set_text(&toughText_layer, "send failed");
 		return;
 	}
+	
+	text_layer_set_text(&toughText_layer, "send ok");
 }
 
 
@@ -114,13 +115,9 @@ void request_quotes() {
 void pbl_main(void *params) {
   PebbleAppHandlers handlers = {
     .init_handler = &handle_init,
-    .tick_info = {
-      .tick_handler = &handle_minute_tick,
-      .tick_units = MINUTE_UNIT
-    },
     .messaging_info = {
       .buffer_sizes = {
-        .inbound = 124,
+        .inbound = 1500,
         .outbound = 256
       }
 }
