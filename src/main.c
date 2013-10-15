@@ -46,6 +46,8 @@ void http_success(int32_t request_id, int http_status, DictionaryIterator* recei
 
 	if(tuple) {
 		  text_layer_set_text(&toughText_layer, tuple->value->cstring);
+	} else {
+		text_layer_set_text(&toughText_layer, "tuple read didn't work");
 	}
 	
 }
@@ -60,14 +62,13 @@ void http_failure(int32_t request_id, int http_status, void* context) {
 
 
 void handle_init(AppContextRef ctx) {
-	(void)ctx;
 
 	http_set_app_id(762702);
 	
 	http_register_callbacks((HTTPCallbacks) {
 		.success = http_success,
 		.failure = http_failure
-	}, NULL);
+	}, (void*)ctx);
 
 
 
@@ -117,8 +118,8 @@ void pbl_main(void *params) {
     .init_handler = &handle_init,
     .messaging_info = {
       .buffer_sizes = {
-        .inbound = 1500,
-        .outbound = 256
+        .inbound = 1000,
+        .outbound = 1000
       }
 }
   };
