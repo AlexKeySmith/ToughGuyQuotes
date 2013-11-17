@@ -5,6 +5,12 @@ static TextLayer *text_layer;
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   text_layer_set_text(text_layer, "Select");
+  
+  DictionaryIterator *iter;
+   app_message_outbox_begin(&iter);
+   Tuplet value = TupletInteger(1, 42);
+   dict_write_tuplet(iter, &value);
+   app_message_outbox_send();
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -35,6 +41,27 @@ static void window_unload(Window *window) {
   text_layer_destroy(text_layer);
 }
 
+void out_sent_handler(DictionaryIterator *sent, void *context) {
+  // outgoing message was delivered
+}
+
+
+void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context) {
+  // outgoing message failed
+}
+
+
+void in_received_handler(DictionaryIterator *received, void *context) {
+  // incoming message received
+}
+
+
+void in_dropped_handler(AppMessageResult reason, void *context) {
+  // incoming message dropped
+}
+
+
+
 static void init(void) {
   window = window_create();
   window_set_click_config_provider(window, click_config_provider);
@@ -44,6 +71,15 @@ static void init(void) {
   });
   const bool animated = true;
   window_stack_push(window, animated);
+  
+  app_message_register_inbox_received(in_received_handler);
+  app_message_register_inbox_dropped(in_dropped_handler);
+  app_message_register_outbox_sent(out_sent_handler);
+  app_message_register_outbox_failed(out_failed_handler);
+
+  const uint32_t inbound_size = 64;
+  const uint32_t outbound_size = 64;
+  app_message_open(inbound_size, outbound_size);
 }
 
 static void deinit(void) {
