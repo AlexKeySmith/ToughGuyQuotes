@@ -4,13 +4,13 @@ static Window *window;
 static TextLayer *text_layer;
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(text_layer, "Select");
+ 	text_layer_set_text(text_layer, "loading..");
   
-  DictionaryIterator *iter;
-   app_message_outbox_begin(&iter);
-   Tuplet value = TupletInteger(1, 42);
-   dict_write_tuplet(iter, &value);
-   app_message_outbox_send();
+  	DictionaryIterator *iter;
+   	app_message_outbox_begin(&iter);
+   	Tuplet value = TupletInteger(1, 42);
+   	dict_write_tuplet(iter, &value);
+   	app_message_outbox_send();
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -39,6 +39,11 @@ static void window_load(Window *window) {
 
 static void window_unload(Window *window) {
   text_layer_destroy(text_layer);
+}
+
+
+static void focusHandler(bool in_focus) {
+	text_layer_set_text(text_layer, "load quote -->");
 }
 
 void out_sent_handler(DictionaryIterator *sent, void *context) {
@@ -76,6 +81,8 @@ static void init(void) {
   app_message_register_inbox_dropped(in_dropped_handler);
   app_message_register_outbox_sent(out_sent_handler);
   app_message_register_outbox_failed(out_failed_handler);
+  
+  app_focus_service_subscribe(focusHandler);
 
   const uint32_t inbound_size = 64;
   const uint32_t outbound_size = 64;
