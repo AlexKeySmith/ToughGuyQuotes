@@ -19,16 +19,16 @@
         "name": "IMAGE_MENU_ICON",
         "file": "images/menu_icon_simplicity.png"
       },
-      {
+	  {
         "type": "font",
-        "name": "FONT_ROBOTO_CONDENSED_21",
-        "file": "fonts/Roboto-Condensed.ttf"
+        "name": "STARDOSSTENCIL_REGULAR_20",
+        "file": "fonts/StardosStencil-Regular.ttf"
       },
       {
         "characterRegex": "[:0-9]",
         "type": "font",
-        "name": "FONT_ROBOTO_BOLD_SUBSET_49",
-        "file": "fonts/Roboto-Bold.ttf"
+        "name": "STARDOSSTENCIL_BOLD_47",
+        "file": "fonts/StardosStencil-Bold.ttf"
       }
     ]
   }
