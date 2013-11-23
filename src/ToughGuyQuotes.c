@@ -16,7 +16,7 @@ void line_layer_update_callback(Layer *layer, GContext* ctx) {
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
  	//text_layer_set_text(text_layer, "loading..");
-  	app_message_open(inbound_size, outbound_size);
+
   	DictionaryIterator *iter;
    	app_message_outbox_begin(&iter);
    	Tuplet value = TupletInteger(1, 42);
@@ -86,7 +86,7 @@ static void window_unload(Window *window) {
 
 
 static void focusHandler(bool in_focus) {
-	//text_layer_set_text(text_layer, "load quote -->");
+	text_layer_set_text(text_time_layer, "load quote -->");
 }
 
 void out_sent_handler(DictionaryIterator *sent, void *context) {
@@ -120,6 +120,7 @@ static void init(void) {
 	window_set_fullscreen(window, true);
     window_stack_push(window, animated);
 	
+	app_message_open(inbound_size, outbound_size);
  
     app_message_register_inbox_received(in_received_handler);
     app_message_register_inbox_dropped(in_dropped_handler);
