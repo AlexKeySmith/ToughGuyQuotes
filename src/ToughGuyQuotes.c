@@ -117,6 +117,7 @@ static void init(void) {
       .unload = window_unload,
     });
     const bool animated = true;
+	window_set_fullscreen(window, true);
     window_stack_push(window, animated);
 	
  
