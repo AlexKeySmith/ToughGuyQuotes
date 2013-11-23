@@ -1,9 +1,12 @@
 #include <pebble.h>
+#include <stdbool.h>
 
 Window *window;
 TextLayer *text_date_layer;
 TextLayer *text_time_layer;
 Layer *line_layer;
+bool subscribeTicksWhenGetFocus;
+
 
 
 const uint32_t inbound_size = 64;
@@ -86,7 +89,12 @@ static void window_unload(Window *window) {
 
 
 static void focusHandler(bool in_focus) {
-	text_layer_set_text(text_time_layer, "load quote -->");
+	if(subscribeTicksWhenGetFocus)
+	{
+		tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
+		subscribeTicksWhenGetFocus = false;
+	}
+	text_layer_set_text_alignment(text_date_layer, GTextAlignmentCenter);
 }
 
 void out_sent_handler(DictionaryIterator *sent, void *context) {
@@ -135,27 +143,30 @@ static void init(void) {
 
   Layer *window_layer = window_get_root_layer(window);
 
-  text_date_layer = text_layer_create(GRect(0, 40, 144, 168-40));
+  text_date_layer = text_layer_create(GRect(0, 60, 144, 168-60));
   text_layer_set_text_color(text_date_layer, GColorWhite);
   text_layer_set_background_color(text_date_layer, GColorClear);
   text_layer_set_font(text_date_layer, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_STARDOSSTENCIL_REGULAR_20)));
   text_layer_set_text_alignment(text_date_layer, GTextAlignmentCenter);
   layer_add_child(window_layer, text_layer_get_layer(text_date_layer));
 
-  text_time_layer = text_layer_create(GRect(0, 68, 144, 168-68));
+  text_time_layer = text_layer_create(GRect(0, 88, 144, 168-88));
   text_layer_set_text_color(text_time_layer, GColorWhite);
   text_layer_set_background_color(text_time_layer, GColorClear);
   text_layer_set_font(text_time_layer, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_STARDOSSTENCIL_BOLD_47)));
   text_layer_set_text_alignment(text_time_layer, GTextAlignmentCenter);
   layer_add_child(window_layer, text_layer_get_layer(text_time_layer));
 
-  GRect line_frame = GRect(2, 70, 144-2, 2);
+  GRect line_frame = GRect(2, 90, 144-2, 2);
   line_layer = layer_create(line_frame);
   layer_set_update_proc(line_layer, line_layer_update_callback);
   layer_add_child(window_layer, line_layer);
 
-  tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
-  // TODO: Update display here to avoid blank display on launch?
+	text_layer_set_text(text_date_layer, "load quote > ");
+	subscribeTicksWhenGetFocus = true;
+	text_layer_set_text_alignment(text_date_layer, GTextAlignmentRight);
+	//tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
+	//TODO: Update display here to avoid blank display on launch?
 }
 
 
