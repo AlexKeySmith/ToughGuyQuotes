@@ -33,7 +33,7 @@ var ToughGuyQuotes = function(Pebble){
 
 Pebble.addEventListener("ready",
   function(e) {
-	ToughGuyQuotes.getQuotes();
+	//ToughGuyQuotes.getQuotes();
   }
 );
 
