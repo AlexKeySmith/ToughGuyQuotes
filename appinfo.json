@@ -1,6 +1,6 @@
 {
   "uuid": "0dd2e232-178d-44c0-8f1f-ed518f4eb18d",
-  "shortName": "ToughGuyQuotes",
+  "shortName": "Tough Guy",
   "longName": "Tough Guy Quotes",
   "companyName": "AlexKey",
   "versionCode": 1,
@@ -11,6 +11,7 @@
   "appKeys": {
     "dummy": 0
   },
+  "capabilities": [ "configurable" ],
   "resources": {
     "media": [
       {
