@@ -4,90 +4,94 @@ var ToughGuyQuotes = function(Pebble){
 	
 	var getSettingsURL = "http://x.setpebble.com/api/" + settingsVersionKey + "/" + Pebble.getAccountToken();
 	var setSettingsURL = "http://x.setpebble.com/" + settingsVersionKey + "/" + Pebble.getAccountToken();
+
+	var defaultSettings = {
+		'firstName' : 'Alex',
+		'lastName' : 'Key',
+		'showExplicit' : 0,
+		'default' : true
+	}
 	
-	localStorage[settingsVersionKey] = localStorage[settingsVersionKey] || {};
+	var settings = window.localStorage[settingsVersionKey] ? JSON.parse(window.localStorage[settingsVersionKey]) : defaultSettings;
 	
 	var req = new XMLHttpRequest();
+	
 	req.onload = function(e) {
-		console.log("onload");
 		if (req.readyState == 4 && req.status == 200) {
-			console.log("response ok");
-			var response = JSON.parse(req.responseText);
+			//remove the \' escape sequence as it's invalid in json.
+			var removeSingleQuoteEscape = req.responseText.replace("\\'", "'")
+
+			var response = JSON.parse(removeSingleQuoteEscape);
 			var text = response.value[0].joke;
 			Pebble.showSimpleNotificationOnPebble("Tough Guy", text);	
-			return;
 			
 		} else {
 			 Pebble.showSimpleNotificationOnPebble("Tough Guy", "Sorry couldn't load the quotes");
 		}	
 	}
 	req.ontimeout = function(e) {
-		console.log("timed out");
 		Pebble.showSimpleNotificationOnPebble("Tough Guy", "Sorry couldn't load the quotes it timed out connecting to the internet");
 	}
 	
 	
 	req.timeout = 3000;
 	
-	var checkSettingsAreOK = function() {
-		
-		if(localStorage[settingsVersionKey]) {
-			var firstNameSet = localStorage[settingsVersionKey].hasOwnProperty('firstName') && localStorage[settingsVersionKey].firstName.length > 0;
-			var lastNameSet = localStorage[settingsVersionKey].hasOwnProperty('lastName') && localStorage[settingsVersionKey].lastName.length > 0;
-			var showExplicitSet = localStorage[settingsVersionKey].hasOwnProperty('showExplicit') && (localStorage[settingsVersionKey].showExplicit === 1 || localStorage[settingsVersionKey].showExplicit === 0);
-			
-			if(firstNameSet && lastNameSet && showExplicitSet) {
-				console.log("settings are ok");
-				return true;
-			} else {
-				console.log("firstNameSet: " + firstNameSet + " lastNameSet: " + lastNameSet + " showExplicitSet: " + showExplicitSet);
-				return false;
-				
-			}
-			
-			
-		} else {
-			console.log("no settings saved in local storage");
-			return false;
-		}
-			
-		
-	};
-
 	 
 	var getQuotes = function() {
-		
-		if(checkSettingsAreOK() === false) {
-			Pebble.showSimpleNotificationOnPebble("Tough Guy", "Could not load your settings, please ensure you have set them in the pebble app.");
-			return;
+
+		if(settings.default) {
+			Pebble.showSimpleNotificationOnPebble("Tough Guy", "You can set your own name in the pebble app to customise the quotes.");
 		}
 		
 		var count = 1;
-		var url = "http://api.icndb.com/jokes/random/" + count + "?firstName=" + localStorage[settingsVersionKey].firstName + "&lastName=" + localStorage[settingsVersionKey].lastName;
-		console.log(url);
 		
-		url = encodeURI(url);
+		var firstName = encodeURIComponent(settings.firstName);
+		var lastName = encodeURIComponent(settings.lastName);
+		
+		var url = "http://api.icndb.com/jokes/random/" + count + "?escape=javascript&firstName=" + firstName + "&lastName=" + lastName;
 		
 		req.open('GET', url, true);
-		console.log('done get');
 	 	req.send(null);
-		console.log("triggered send");
 	};
 	
 
-	var parseSettings = function(settingsJSON) {
-	
+	var saveSettings = function(settingsJSON) {
 	
 		try {
-			//n.b. settingsJSON not an array, but the key is a number.
-			localStorage[settingsVersionKey].firstName = settingsJSON["1"];
-			localStorage[settingsVersionKey].lastName = settingsJSON["2"];
-			localStorage[settingsVersionKey].showExplicit = settingsJSON["3"];
+			
+			//n.b. settingsJSON not an array, but the key is a number
+			var firstName = settingsJSON["1"] || "";
+			var lastName = settingsJSON["2"] || "";
+			var showExplicit = null;
+			
+			if(settingsJSON["3"] === 1) {
+				showExplicit = true;
+			} else if (settingsJSON["3"] === 0) {
+				showExplicit = false;
+			}
+			
+			if(firstName.length > 0 && lastName.length > 0 && showExplicit !== null) {
+				
+				settings = {
+					"firstName" : firstName,
+					"lastName" : lastName,
+					"showExplicit" : showExplicit,
+					"default" : false
+				};
+
+				var settingsString = JSON.stringify(settings);
+				window.localStorage[settingsVersionKey] = settingsString;
+				
+			} else {
+				Pebble.showSimpleNotificationOnPebble("Tough Guy", "Sorry couldn't save your name etc in the settings, please ensure you have your first name, last name and if explicit quotes are on or not.");
+			}
+			
+		
 			
 		} catch(e) {
-	
-			Pebble.showSimpleNotificationOnPebble("Tough Guy", "Sorry couldn't save your name etc in the settings");
-	      	
+			console.log(e);
+			Pebble.showSimpleNotificationOnPebble("Tough Guy", "Sorry couldn't save your name etc in the settings.");
+			settings = defaultSettings;
 	    }
 		
 	};
@@ -100,14 +104,12 @@ var ToughGuyQuotes = function(Pebble){
 	Pebble.addEventListener("webviewclosed", function(e) {
 	
 		if ((typeof(e.response) == 'string') && (e.response.length > 0)) {
-			
+			console.log(e.response);
 			var settingsJSON = JSON.parse(e.response);
-			parseSettings(settingsJSON);
+			saveSettings(settingsJSON);
 			
-		}  else {
-			
-			throw Error("The response was empty");
-			
+		}  else {		
+			Pebble.showSimpleNotificationOnPebble("Tough Guy", "Sorry couldn't find your settings on the settings page.");
 		}
 
 	});
@@ -119,8 +121,10 @@ var ToughGuyQuotes = function(Pebble){
 	
 	Pebble.addEventListener("ready", function(e) {
 		
-	
 		
+		if( window.localStorage[settingsVersionKey].default == true ) {
+			Pebble.showSimpleNotificationOnPebble("Tough Guy", "You can set your own name in the Pebble App settings");
+		}
 		
 	});
 	
